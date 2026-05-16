@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tamil Colors Quiz</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            --background: #f5f7fa;
+            --card-bg: #ffffff;
+            --text: #333333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+        }
+
+        .progress {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .color-box {
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+            border-radius: 50%;
+            border: 2px solid #e2e8f0;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1), 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .color-box:hover {
+            transform: scale(1.05);
+        }
+
+        h2 {
+            margin: 15px 0;
+            font-size: 1.6rem;
+        }
+
+        .hint-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: underline;
+            margin-bottom: 20px;
+        }
+
+        .hint-text {
+            display: none;
+            color: #7f8c8d;
+            font-style: italic;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            background-color: #edf2f7;
+            border-color: #cbd5e0;
+            transform: translateY(-2px);
+        }
+
+        .option-btn.correct {
+            background-color: var(--success) !important;
+            color: white;
+            border-color: var(--success);
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error) !important;
+            color: white;
+            border-color: var(--error);
+        }
+
+        .next-btn {
+            margin-top: 25px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: none;
+            box-shadow: 0 4px 6px rgba(74, 144, 226, 0.3);
+        }
+
+        .next-btn:hover {
+            background-color: #357abd;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .restart-btn {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz-screen">
+        <div class="progress" id="progress-text">Question 1 of 11</div>
+        <div class="color-box" id="color-display"></div>
+        <h2>What color is this in Tamil?</h2>
+        
+        <button class="hint-btn" id="hint-button" onclick="toggleHint()">💡 Need a hint?</button>
+        <div class="hint-text" id="hint-display"></div>
+
+        <div class="options-grid" id="options-container">
+            </div>
+
+        <button class="next-btn" id="next-button" onclick="nextQuestion()">Next Question ➡️</button>
+    </div>
+
+    <div id="results-screen" class="results">
+        <h2>Quiz Completed! 🎉</h2>
+        <p id="score-text" style="font-size: 1.3rem; margin: 20px 0;"></p>
+        <button class="restart-btn" onclick="restartQuiz()">Try Again</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            colorCode: "#000000",
+            correctAnswer: "கருப்பு (Karuppu)",
+            hint: "Sounds like: Ka-rup-pu (Black)",
+            options: ["கருப்பு (Karuppu)", "வெள்ளை (Vellai)", "சாம்பல் நிறம் (Saambal Niram)", "பழுப்பு (Pazhuppu)"]
+        },
+        {
+            colorCode: "#FFFFFF",
+            correctAnswer: "வெள்ளை (Vellai)",
+            hint: "Sounds like: Vel-lai (White)",
+            options: ["மஞ்சள் (Manjal)", "வெள்ளை (Vellai)", "நீலம் (Neelam)", "இளஞ்சிவப்பு (Elanchivappu)"]
+        },
+        {
+            colorCode: "#0000FF",
+            correctAnswer: "நீலம் (Neelam)",
+            hint: "Sounds like: Nee-lam (Blue)",
+            options: ["பச்சை (Pachai)", "ஊதா (Oodha)", "நீலம் (Neelam)", "காவி (Kaavi)"]
+        },
+        {
+            colorCode: "#008000",
+            correctAnswer: "பச்சை (Pachai)",
+            hint: "Sounds like: Pach-chai (Green)",
+            options: ["பச்சை (Pachai)", "சிவப்பு (Sivappu)", "மஞ்சள் (Manjal)", "பழுப்பு (Pazhuppu)"]
+        },
+        {
+            colorCode: "#FF0000",
+            correctAnswer: "சிவப்பு (Sivappu)",
+            hint: "Sounds like: Si-vap-pu (Red)",
+            options: ["காvi (Kaavi)", "ஊதா (Oodha)", "இளஞ்சிவப்பு (Elanchivappu)", "சிவப்பு (Sivappu)"]
+        },
+        {
+            colorCode: "#800080",
+            correctAnswer: "ஊதா (Oodha)",
+            hint: "Sounds like: Oo-dhaa (Purple / Violet)",
+            options: ["நீலம் (Neelam)", "ஊதா (Oodha)", "சாம்பல் நிறம் (Saambal Niram)", "கருப்பு (Karuppu)"]
+        },
+        {
+            colorCode: "#FFFF00",
+            correctAnswer: "மஞ்சள் (Manjal)",
+            hint: "Sounds like: Man-jal (Yellow)",
+            options: ["மஞ்சள் (Manjal)", "வெள்ளை (Vellai)", "பழுப்பு (Pazhuppu)", "பச்சை (Pachai)"]
+        },
+        {
+            colorCode: "#808080",
+            correctAnswer: "சாம்பல் நிறம் (Saambal Niram)",
+            hint: "Sounds like: Saam-bal Ni-ram (Grey)",
+            options: ["கருப்பு (Karuppu)", "பழுப்பு (Pazhuppu)", "சாம்பல் நிறம் (Saambal Niram)", "வெள்ளை (Vellai)"]
+        },
+        {
+            colorCode: "#C8AD7F",
+            correctAnswer: "பழுப்பு (Pazhuppu)",
+            hint: "Sounds like: Pa-zhup-pu (Brown)",
+            options: ["காவி (Kaavi)", "பழுப்பு (Pazhuppu)", "மஞ்சள் (Manjal)", "இளஞ்சிவப்பு (Elanchivappu)"]
+        },
+        {
+            colorCode: "#FFC0CB",
+            correctAnswer: "இளஞ்சிவப்பு (Elanchivappu)",
+            hint: "Sounds like: Elan-chi-vap-pu (Pink)",
+            options: ["சிவப்பு (Sivappu)", "வெள்ளை (Vellai)", "ஊதா (Oodha)", "இளஞ்சிவப்பு (Elanchivappu)"]
+        },
+        {
+            colorCode: "#FFA500",
+            correctAnswer: "காவி (Kaavi)",
+            hint: "Sounds like: Kaa-vi (Saffron / Orange)",
+            options: ["காவி (Kaavi)", "மஞ்சள் (Manjal)", "சிவப்பு (Sivappu)", "பச்சை (Pachai)"]
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    const progressText = document.getElementById('progress-text');
+    const colorDisplay = document.getElementById('color-display');
+    const hintDisplay = document.getElementById('hint-display');
+    const hintButton = document.getElementById('hint-button');
+    const optionsContainer = document.getElementById('options-container');
+    const nextButton = document.getElementById('next-button');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultsScreen = document.getElementById('results-screen');
+    const scoreText = document.getElementById('score-text');
+
+    function startQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        quizScreen.style.display = 'block';
+        resultsScreen.style.display = 'none';
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        const currentQuestion = quizData[currentQuestionIndex];
+        
+        progressText.innerText = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+        colorDisplay.style.backgroundColor = currentQuestion.colorCode;
+        
+        hintDisplay.innerText = currentQuestion.hint;
+        hintDisplay.style.display = 'none';
+        hintButton.style.display = 'inline-block';
+        
+        nextButton.style.display = 'none';
+        optionsContainer.innerHTML = '';
+
+        currentQuestion.options.forEach(option => {
+            const button = document.createElement('button');
+            button.classList.add('option-btn');
+            button.innerText = option;
+            button.onclick = () => selectAnswer(button, option);
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    function toggleHint() {
+        hintDisplay.style.display = 'block';
+        hintButton.style.display = 'none';
+    }
+
+    function selectAnswer(selectedButton, chosenOption) {
+        const currentQuestion = quizData[currentQuestionIndex];
+        const allButtons = optionsContainer.querySelectorAll('.option-btn');
+        
+        allButtons.forEach(btn => btn.disabled = true);
+
+        if (chosenOption === currentQuestion.correctAnswer) {
+            selectedButton.classList.add('correct');
+            score++;
+        } else {
+            selectedButton.classList.add('wrong');
+            
+            allButtons.forEach(btn => {
+                if (btn.innerText === currentQuestion.correctAnswer) {
+                    btn.classList.add('correct');
+                }
+            });
+        }
+
+        nextButton.style.display = 'inline-block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        quizScreen.style.display = 'none';
+        resultsScreen.style.display = 'block';
+        scoreText.innerText = `You scored ${score} out of ${quizData.length}!`;
+    }
+
+    function restartQuiz() {
+        startQuiz();
+    }
+
+    startQuiz();
+</script>
+
+</body>
+</html>
